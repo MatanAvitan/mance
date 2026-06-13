@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mace"
+version = "0.1.0"
+description = "MACE: Manifold Aware Concept Erasure"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Matan Avitan" }]
+keywords = ["concept-erasure", "interpretability", "fairness", "manifold", "representation-engineering"]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "torch>=2.1",
+]
+
+[project.optional-dependencies]
+# Needed only to (re)extract BiasBios representations from a language model.
+data = [
+    "transformers>=4.40",
+    "datasets>=2.18",
+]
+# Needed only to run the quickstart notebook.
+notebook = [
+    "jupyter",
+    "matplotlib>=3.7",
+]
+
+[tool.setuptools.packages.find]
+include = ["mace*"]
+
+[tool.ruff]
+line-length = 100

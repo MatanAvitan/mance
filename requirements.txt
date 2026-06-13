@@ -1,0 +1,13 @@
+# Core (the MACE method + evaluation)
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.3
+torch>=2.1
+
+# Data extraction (only needed to re-extract BiasBios representations)
+transformers>=4.40
+datasets>=2.18
+
+# Notebook
+jupyter
+matplotlib>=3.7
