@@ -1,4 +1,4 @@
-"""BiasBios representations for the MACE demo.
+"""BiasBios representations for the MANCE demo.
 
 We extract last-token hidden states from a frozen language model over the
 *Bias in Bios* biographies (De-Arteaga et al., 2019). The target concept to

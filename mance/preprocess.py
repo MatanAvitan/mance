@@ -1,13 +1,13 @@
-"""Optional closed-form preprocessing for the MACE family.
+"""Optional closed-form preprocessing for the MANCE family.
 
 These are one-shot affine projections (effective rank :math:`\\le 3`) applied
-to all splits *before* the iterative MACE loop. They remove dataset-level
+to all splits *before* the iterative MANCE loop. They remove dataset-level
 moment structure that already has simple closed-form erasers, so the iterative
 loop does not have to spend its trust-region budget on it.
 
-* ``MACE+``  prepends :func:`fit_leace_eraser` — LEACE (Belrose et al., 2023),
+* ``MANCE+``  prepends :func:`fit_leace_eraser` — LEACE (Belrose et al., 2023),
   which removes the first-moment linear signal associated with class means.
-* ``MACE++`` additionally prepends :func:`covariance_matching_directions` —
+* ``MANCE++`` additionally prepends :func:`covariance_matching_directions` —
   *CovMatch*, a rank-2 specialisation of k-LEACE that removes the leading
   second-moment class-conditional covariance asymmetry
   :math:`\\Delta\\Sigma = \\Sigma_+ - \\Sigma_-`.

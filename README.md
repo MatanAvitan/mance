@@ -1,16 +1,16 @@
-# <div align="center">MACE: Manifold Aware Concept Erasure</div>
+# <div align="center">MANCE: Manifold Aware Concept Erasure</div>
 <div align="center">Matan Avitan, Yoav Goldberg, Yanai Elazar
 <br><br>
 
-A clean reference implementation of **MACE**, **MACE⁺**, and **MACE⁺⁺**.
+A clean reference implementation of **MANCE**, **MANCE⁺**, and **MANCE⁺⁺**.
 </div>
 
 <p align="center">
-<img src="figures/figure1_mace_3d.png" width="820">
+<img src="figures/figure1_mance_3d.png" width="820">
 </p>
 <p align="center"><em>(A)</em> Natural representations concentrate near a low-dimensional manifold.
 <em>(B)</em> The raw scorer gradient erases the concept but leaves the manifold,
-damaging unlabeled control concepts. <em>(C)</em> <b>MACE</b> projects the gradient
+damaging unlabeled control concepts. <em>(C)</em> <b>MANCE</b> projects the gradient
 onto the local tangent space and takes a bounded on-manifold step, preserving control.</p>
 
 # TL;DR
@@ -25,7 +25,7 @@ representations concentrate in a structured, lower-dimensional region, so
 interventions constrained to directions supported by *nearby natural
 representations* should preserve the other information encoded in the
 representation better than comparably sized unconstrained edits. We
-instantiate MCH with **MACE**: it confines each edit to the local manifold
+instantiate MCH with **MANCE**: it confines each edit to the local manifold
 geometry rather than moving freely across all of Euclidean space — estimating
 local directions from neighboring **natural (unedited) representations**
 `X⁽⁰⁾` and using a nonlinear probe to reduce recoverable target information.
@@ -33,18 +33,18 @@ local directions from neighboring **natural (unedited) representations**
 # What we found
 Locally constrained updates improve the leakage–surgicality tradeoff relative to
 matched full-space updates, and strengthen prior erasure methods without
-exceeding the allowed control degradation. **MACE⁺⁺** achieves
+exceeding the allowed control degradation. **MANCE⁺⁺** achieves
 state-of-the-art nonlinear erasure results across 119 settings spanning text and
 vision (13 language models, 3 NLP concepts, 40 CelebA-CLIP attributes).
 
 <p align="center">
 <img src="figures/aggregated_nlp_results.png" width="600">
 </p>
-<p align="center"><em>Across the NLP suite, the MACE family attains the lowest residual concept
-leakage at every control-degradation budget ΔY (lower is better); MACE⁺⁺ is SOTA.</em></p>
+<p align="center"><em>Across the NLP suite, the MANCE family attains the lowest residual concept
+leakage at every control-degradation budget ΔY (lower is better); MANCE⁺⁺ is SOTA.</em></p>
 
 # The method, in one paragraph
-Given representations and target-concept labels, MACE runs an iterative
+Given representations and target-concept labels, MANCE runs an iterative
 editing loop (Algorithm 1 in the paper). Each round it
 
 1. fits / reuses a nonlinear **concept probe** on the current representations;
@@ -62,24 +62,24 @@ The three variants differ only in optional closed-form preprocessing applied
 
 | Variant      | Preprocessing                                       | Default |
 |--------------|-----------------------------------------------------|:-------:|
-| `mace`       | none                                                |         |
-| `mace+`      | LEACE (mean / first-moment linear signal)           |         |
-| `mace++`     | LEACE + CovMatch (leading covariance asymmetry ΔΣ)  |   ✅    |
+| `mance`       | none                                                |         |
+| `mance+`      | LEACE (mean / first-moment linear signal)           |         |
+| `mance++`     | LEACE + CovMatch (leading covariance asymmetry ΔΣ)  |   ✅    |
 
 # Quickstart notebook
 [`notebooks/biasbios_quickstart.ipynb`](notebooks/biasbios_quickstart.ipynb) is
 the place to start. It extracts (or loads cached) Bias-in-Bios representations
-from `Qwen/Qwen2.5-0.5B`, runs all three MACE variants to erase **gender**, and
+from `Qwen/Qwen2.5-0.5B`, runs all three MANCE variants to erase **gender**, and
 shows that the gender probe collapses toward chance while the **profession**
 control probe is preserved.
 
 ```python
-from mace import MACE
-from mace.data import load_or_extract_biasbios
+from mance import MANCE
+from mance.data import load_or_extract_biasbios
 
 reps = load_or_extract_biasbios()                  # cached .npz, or extract from the LM
 
-eraser = MACE(variant="mace++", epsilon=0.1)       # mace++ is the default
+eraser = MANCE(variant="mance++", epsilon=0.1)       # mance++ is the default
 result = eraser.fit_erase(
     reps.X_train, reps.gender_train,
     reps.X_val,   reps.gender_val,
@@ -94,12 +94,12 @@ print(result.history[-1])   # {'step': ..., 'concept_acc': ~floor, 'control_acc'
 <p align="center">
 <img src="figures/biasbios_trajectory.png" width="560">
 </p>
-<p align="center"><em>Erasing gender from Qwen2.5-0.5B BiasBios representations with MACE⁺⁺:
+<p align="center"><em>Erasing gender from Qwen2.5-0.5B BiasBios representations with MANCE⁺⁺:
 the gender probe collapses toward chance while the profession control probe is preserved.</em></p>
 
 # Installation
 ```bash
-git clone <this-repo> && cd mace
+git clone https://github.com/MatanAvitan/mance.git && cd mance
 pip install -e .                       # core method + evaluation
 pip install -e ".[data,notebook]"      # + BiasBios extraction + the notebook
 ```
@@ -108,9 +108,9 @@ batched k-NN + SVD), but everything runs on CPU as well.
 
 # Repository layout
 ```
-mace/                     # repository root
-├── mace/
-│   ├── erasure.py        # MACE editing loop + variants (Algorithm 1)
+mance/                     # repository root
+├── mance/
+│   ├── erasure.py        # MANCE editing loop + variants (Algorithm 1)
 │   ├── scorer.py         # nonlinear concept probe + input gradients
 │   ├── tangent.py        # local-PCA tangent-space estimator (k-NN + batched SVD)
 │   ├── preprocess.py     # LEACE and CovMatch closed-form erasers
@@ -124,8 +124,8 @@ mace/                     # repository root
 
 # Citation
 ```bibtex
-@inproceedings{avitan2026mace,
-  title     = {MACE: Manifold Aware Concept Erasure},
+@inproceedings{avitan2026mance,
+  title     = {MANCE: Manifold Aware Concept Erasure},
   author    = {Avitan, Matan and Goldberg, Yoav and Elazar, Yanai},
   year      = {2026},
 }

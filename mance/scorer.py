@@ -2,8 +2,8 @@
 
 The scorer is a small MLP trained to predict the target concept from a
 representation. Its *input gradient* :math:`\\nabla_x f(x)` is the direction in
-which the representation most increases the concept logit; MACE erases the
-locally manifold-supported part of this gradient (see :mod:`mace.erasure`).
+which the representation most increases the concept logit; MANCE erases the
+locally manifold-supported part of this gradient (see :mod:`mance.erasure`).
 """
 from __future__ import annotations
 

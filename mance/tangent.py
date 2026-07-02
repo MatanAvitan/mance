@@ -3,7 +3,7 @@
 For each representation we approximate the manifold tangent space
 :math:`T_{x_i}(\\mathcal{M})` by the leading right singular vectors of the
 matrix of its neighbours (centred at the neighbour mean). This is the local
-tangent-space approximation used by MACE to constrain the erasure edit.
+tangent-space approximation used by MANCE to constrain the erasure edit.
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class LocalPCATangentEstimator:
 
     # Side channel: singular values from the most recent ``estimate_bases``
     # call, shape (n, r), sorted descending. Consumers that need the local
-    # spectrum (e.g. the spectral weighting in MACE) read it after the call.
+    # spectrum (e.g. the spectral weighting in MANCE) read it after the call.
     last_singular_values: np.ndarray | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:

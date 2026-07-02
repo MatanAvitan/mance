@@ -19,15 +19,15 @@ def code(text):
 
 
 md(r"""
-# MACE on Bias-in-Bios — Quickstart
+# MANCE on Bias-in-Bios — Quickstart
 
-<img src="../figures/figure1_mace_3d.png" width="760">
+<img src="../figures/figure1_mance_3d.png" width="760">
 
 **Figure 1 (from the paper).** *(A)* Natural representations concentrate near a
 low-dimensional manifold $\mathcal{M}\subset\mathbb{R}^d$, coloured by concept
 strength. *(B)* Following the raw scorer gradient erases the concept but leaves
 $\mathcal{M}$, corrupting unlabeled control concepts (off-manifold collateral
-damage). *(C)* **MACE** projects the scorer gradient onto the locally
+damage). *(C)* **MANCE** projects the scorer gradient onto the locally
 estimated tangent space $T_{x}\mathcal{M}$ and takes a bounded on-manifold step,
 so control concepts are preserved.
 
@@ -38,7 +38,7 @@ probe can no longer recover it (accuracy → majority-class floor) and
 **preserved** when its probe accuracy stays high.
 
 The three variants differ only in optional closed-form preprocessing before the
-loop: `mace` (none), `mace+` (LEACE), `mace++` (LEACE + CovMatch, default).
+loop: `mance` (none), `mance+` (LEACE), `mance++` (LEACE + CovMatch, default).
 """)
 
 code(r"""
@@ -49,8 +49,8 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from mace import MACE, probe_accuracy
-from mace.data import load_or_extract_biasbios
+from mance import MANCE, probe_accuracy
+from mance.data import load_or_extract_biasbios
 
 # --- Paper aesthetic (whitegrid + serif) and Okabe-Ito colour palette --------
 plt.rcParams.update({
@@ -104,7 +104,7 @@ print(f"profession probe (clean):  {prof_clean:.3f}")
 """)
 
 md(r"""
-## 3. Run the MACE variants
+## 3. Run the MANCE variants
 
 Each variant runs the iterative editing loop with the same trust-region budget
 `epsilon=0.1`. We pass the profession labels as the *control* so the loop logs
@@ -122,9 +122,9 @@ round prints the freshly retrained gender / profession probe accuracies.
 
 code(r"""
 results = {}
-for variant in ["mace", "mace+", "mace++"]:
+for variant in ["mance", "mance+", "mance++"]:
     print(f"\n=== {variant} ===")
-    eraser = MACE(variant=variant, epsilon=0.1, n_steps=12, seed=0, device=device)
+    eraser = MANCE(variant=variant, epsilon=0.1, n_steps=12, seed=0, device=device)
     results[variant] = eraser.fit_erase(
         reps.X_train, reps.gender_train, reps.X_val, reps.gender_val,
         reps.X_test, reps.gender_test,
@@ -137,14 +137,14 @@ for variant in ["mace", "mace+", "mace++"]:
 md(r"""
 ## 4. Gender collapses toward chance; profession is preserved
 
-For the default **MACE⁺⁺**, the gender probe (vermilion) falls from its clean
+For the default **MANCE⁺⁺**, the gender probe (vermilion) falls from its clean
 value toward the majority-class floor, while the profession control probe (blue)
 stays close to its clean accuracy — the surgical leakage/preservation tradeoff
 the Manifold Constraint Hypothesis (MCH) predicts.
 """)
 
 code(r"""
-h      = results["mace++"].history
+h      = results["mance++"].history
 steps  = [r["step"] for r in h]
 gender = [r["concept_acc"] for r in h]
 prof   = [r["control_acc"] for r in h]
@@ -161,7 +161,7 @@ ax.text(steps[0], gender_floor, "chance floor",  va="bottom", ha="left",
         fontsize=9, c=C_FLOOR)
 
 # Residual gender leakage = the gap between the gender curve and the floor;
-# the shaded area shrinks to nothing as MACE++ edits round by round.
+# the shaded area shrinks to nothing as MANCE++ edits round by round.
 ax.fill_between(steps, gender, gender_floor, color=C_CONCEPT, alpha=0.10,
                 lw=0, zorder=1)
 
@@ -180,7 +180,7 @@ ax.annotate("gender\ntarget — erased", xy=(steps[-1], gender[-1]),
 
 ax.set_xlabel("editing round")
 ax.set_ylabel("nonlinear-probe accuracy")
-ax.set_title("Erasing gender from Qwen2.5-0.5B with MACE$^{++}$", pad=10)
+ax.set_title("Erasing gender from Qwen2.5-0.5B with MANCE$^{++}$", pad=10)
 ax.set_xlim(steps[0], steps[-1] + x_pad)
 ymin = min(gender_floor, min(gender), min(prof))
 ymax = max(gender_clean, max(prof))
@@ -197,7 +197,7 @@ md(r"""
 code(r"""
 print(f"{'variant':10s} {'gender ↓':>10s} {'profession (preserved)':>24s}")
 print(f"{'clean':10s} {gender_clean:>10.3f} {prof_clean:>24.3f}")
-for v in ["mace", "mace+", "mace++"]:
+for v in ["mance", "mance+", "mance++"]:
     last = results[v].history[-1]
     print(f"{v:10s} {last['concept_acc']:>10.3f} {last['control_acc']:>24.3f}")
 print(f"\n(gender majority-class floor = {gender_floor:.3f})")
@@ -206,15 +206,15 @@ print(f"\n(gender majority-class floor = {gender_floor:.3f})")
 md(r"""
 ## 6. Where this sits in the paper
 
-Across the full NLP suite (13 language models × 3 concepts), the MACE family
+Across the full NLP suite (13 language models × 3 concepts), the MANCE family
 attains the lowest residual concept leakage at every control-degradation budget
-$\Delta Y$, and **MACE⁺⁺** is state-of-the-art for nonlinear erasure. Lower is
+$\Delta Y$, and **MANCE⁺⁺** is state-of-the-art for nonlinear erasure. Lower is
 better; the y-axis is the mean gap between the post-erasure concept-probe
 accuracy and its chance floor.
 
 <img src="../figures/aggregated_nlp_results.png" width="640">
 
-**Takeaway.** The closed-form preprocessing in MACE⁺⁺ (LEACE + CovMatch)
+**Takeaway.** The closed-form preprocessing in MANCE⁺⁺ (LEACE + CovMatch)
 combined with the on-manifold iterative loop drives gender leakage to chance
 while keeping the profession control probe close to its clean accuracy — exactly
 the behaviour Figure 1 illustrates.

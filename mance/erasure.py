@@ -1,4 +1,4 @@
-"""The MACE editing loop and its variants.
+"""The MANCE editing loop and its variants.
 
 This module implements Algorithm 1 of the paper. Each round it
 
@@ -10,12 +10,12 @@ This module implements Algorithm 1 of the paper. Each round it
    input gradient, and
 4. applies the largest per-row step allowed by a local-radius trust region.
 
-The :class:`MACE` wrapper selects the variant via ``variant``:
+The :class:`MANCE` wrapper selects the variant via ``variant``:
 
 ============  =====================================================
-``mace``    iterative loop only
-``mace+``   LEACE preprocessing, then the loop
-``mace++``  LEACE + CovMatch preprocessing, then the loop (default)
+``mance``    iterative loop only
+``mance+``   LEACE preprocessing, then the loop
+``mance++``  LEACE + CovMatch preprocessing, then the loop (default)
 ============  =====================================================
 """
 from __future__ import annotations
@@ -26,20 +26,20 @@ from dataclasses import dataclass, field
 import numpy as np
 import torch
 
-from mace.intrinsic_dim import estimate_intrinsic_dim_two_nn
-from mace.preprocess import (
+from mance.intrinsic_dim import estimate_intrinsic_dim_two_nn
+from mance.preprocess import (
     apply_projection,
     covariance_matching_directions,
     fit_leace_eraser,
 )
-from mace.scorer import ConceptScorer, compute_unit_gradients, train_concept_scorer
-from mace.tangent import LocalPCATangentEstimator, project_to_bases
+from mance.scorer import ConceptScorer, compute_unit_gradients, train_concept_scorer
+from mance.tangent import LocalPCATangentEstimator, project_to_bases
 
-_VARIANTS = ("mace", "mace+", "mace++")
+_VARIANTS = ("mance", "mance+", "mance++")
 
 
 # --------------------------------------------------------------- single step
-def mace_edit(
+def mance_edit(
     X: np.ndarray,
     scorer: ConceptScorer,
     tangent: LocalPCATangentEstimator,
@@ -50,7 +50,7 @@ def mace_edit(
     device: torch.device | None = None,
     batch_size: int = 512,
 ) -> np.ndarray:
-    """One MACE edit of ``X`` against a fitted ``scorer`` and ``tangent``.
+    """One MANCE edit of ``X`` against a fitted ``scorer`` and ``tangent``.
 
     ``tangent`` must already be ``fit`` on the reference representations: the
     natural, pre-edit training split X^(0), fit once and reused across rounds.
@@ -108,7 +108,7 @@ def mace_edit(
 
 # ------------------------------------------------------------------- results
 @dataclass
-class MACEResult:
+class MANCEResult:
     """Edited representations plus the per-round evaluation trajectory."""
 
     train: np.ndarray
@@ -121,16 +121,16 @@ class MACEResult:
 
 # --------------------------------------------------------------- the eraser
 @dataclass
-class MACE:
-    """Manifold-aware concept eraser (MACE / MACE+ / MACE++)."""
+class MANCE:
+    """Manifold-aware concept eraser (MANCE / MANCE+ / MANCE++)."""
 
-    variant: str = "mace++"
+    variant: str = "mance++"
     epsilon: float = 0.1
     n_steps: int = 60
     lambda_max: float = 64.0
     alpha: float = 1.0
     n_neighbors: int | None = None          # None -> max(8, ceil(TwoNN intrinsic dim))
-    n_cov_dirs: int = 2                     # CovMatch rank (MACE++ only)
+    n_cov_dirs: int = 2                     # CovMatch rank (MANCE++ only)
     scorer_hidden: int = 512
     scorer_steps: int = 800
     scorer_patience: int = 4
@@ -156,11 +156,11 @@ class MACE:
     # -------------------------------------------------------- preprocessing
     def _preprocess(self, X_tr, y_tr, X_va, X_te):
         Xtr, Xva, Xte = (np.asarray(a, dtype=np.float32) for a in (X_tr, X_va, X_te))
-        if self.variant in ("mace+", "mace++"):
+        if self.variant in ("mance+", "mance++"):
             leace = fit_leace_eraser(Xtr, y_tr)
             Xtr, Xva, Xte = leace.erase(Xtr), leace.erase(Xva), leace.erase(Xte)
             self._log(f"[preprocess] LEACE applied (rank {leace.rank})")
-        if self.variant == "mace++":
+        if self.variant == "mance++":
             D = covariance_matching_directions(Xtr, y_tr, n_cov_dirs=self.n_cov_dirs)
             Xtr, Xva, Xte = (apply_projection(a, D) for a in (Xtr, Xva, Xte))
             self._log(f"[preprocess] CovMatch applied (rank {D.shape[1]})")
@@ -172,14 +172,14 @@ class MACE:
         X_train, y_train, X_val, y_val, X_test, y_test,
         *,
         control_train=None, control_val=None, control_test=None,
-    ) -> MACEResult:
+    ) -> MANCEResult:
         """Run the variant's preprocessing + the iterative loop on all splits.
 
         ``y_*`` are the target-concept labels (erased). The optional
         ``control_*`` labels (a concept to *preserve*) are only used to log the
         control-probe accuracy in the trajectory.
         """
-        from mace.eval import probe_accuracy  # local import avoids a cycle
+        from mance.eval import probe_accuracy  # local import avoids a cycle
 
         y_tr = np.asarray(y_train, dtype=np.int64)
         y_va = np.asarray(y_val, dtype=np.int64)
@@ -246,7 +246,7 @@ class MACE:
 
             # Reuse the fixed X^(0) tangent reference fit above; only the query
             # points (the edited splits) change from round to round.
-            edit = lambda X: mace_edit(  # noqa: E731
+            edit = lambda X: mance_edit(  # noqa: E731
                 X, scorer, tangent,
                 epsilon=self.epsilon, lambda_max=self.lambda_max,
                 alpha=self.alpha, device=self._device,
@@ -264,7 +264,7 @@ class MACE:
                 self._log(f"[stop] concept probe at majority floor ({floor:.3f}) — done.")
                 break
 
-        return MACEResult(
+        return MANCEResult(
             train=cur_tr, val=cur_va, test=cur_te,
             history=history, n_neighbors=k, rank=rank,
         )

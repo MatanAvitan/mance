@@ -1,6 +1,6 @@
 """Intrinsic-dimension estimation.
 
-MACE keeps a local tangent basis of rank ``r``. When ``r`` is not supplied,
+MANCE keeps a local tangent basis of rank ``r``. When ``r`` is not supplied,
 we estimate the global intrinsic dimension once with the TwoNN estimator
 (Facco et al., 2017) and keep that rank fixed throughout the editing loop.
 """
