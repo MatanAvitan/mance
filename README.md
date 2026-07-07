@@ -128,5 +128,6 @@ mance/                     # repository root
   title     = {MANCE: Manifold Aware Concept Erasure},
   author    = {Avitan, Matan and Goldberg, Yoav and Elazar, Yanai},
   year      = {2026},
+  url       = {https://arxiv.org/abs/2607.03973}
 }
 ```
